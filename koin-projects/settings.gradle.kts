@@ -1,7 +1,10 @@
 import com.sun.javafx.scene.CameraHelper.project
 import org.gradle.kotlin.dsl.maven
 
-rootProject.name = "koin-core"
+rootProject.name = "koin"
+include("koin-core")
+include("koin-core-ext")
+include("koin-test")
 
 
 pluginManagement {
