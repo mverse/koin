@@ -73,7 +73,7 @@ class Module(
      * @param definition - definition function
      */
     fun <T:Any> single(
-        type: KClass<T>,
+        type: KClass<out T>,
         name: String? = null,
         createdAtStart: Boolean = false,
         override: Boolean = false,

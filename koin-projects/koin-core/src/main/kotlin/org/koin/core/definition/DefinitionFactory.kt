@@ -13,7 +13,7 @@ object DefinitionFactory {
   }
 
   fun <T : Any> createSingle(
-      type: KClass<T>,
+      type: KClass<out T>,
       name: String? = null,
       definition: Definition<T>
   ): BeanDefinition<T> {
@@ -46,7 +46,7 @@ object DefinitionFactory {
   }
 
   fun <T : Any> createFactory(
-      type: KClass<T>,
+      type: KClass<out T>,
       name: String? = null,
       definition: Definition<T>
   ): BeanDefinition<T> {
@@ -60,7 +60,7 @@ object DefinitionFactory {
   ): BeanDefinition<T> = DefinitionFactory.createDefinition(T::class, name, definition, kind)
 
   fun <T : Any> createDefinition(
-      type: KClass<T>,
+      type: KClass<out T>,
       name: String?,
       definition: Definition<T>,
       kind: Kind = Kind.Single
