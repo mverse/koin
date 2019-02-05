@@ -12,8 +12,9 @@ import kotlin.reflect.KClass
 /**
  * Create instance for type T and inject dependencies into 1st constructor
  */
-inline fun <reified T : Any> Module.create(context: DefinitionContext): T {
-    val kClass = T::class
+inline fun <reified T : Any> Module.create(context: DefinitionContext): T = create(T::class, context)
+
+fun <T : Any> Module.create(kClass:KClass<T>, context: DefinitionContext): T {
     val kclassAsString = kClass.toString()
 
     val (ctor, ctorDuration) = measureDuration {
@@ -25,7 +26,7 @@ inline fun <reified T : Any> Module.create(context: DefinitionContext): T {
     }
 
     val (instance, instanceDuration) = measureDuration {
-        ctor.makeInstance<T>(args)
+        ctor.makeInstance(kClass, args)
     }
 
     if (logger.isAt(Level.DEBUG)) {
@@ -43,6 +44,13 @@ inline fun <reified T : Any> Module.create(context: DefinitionContext): T {
  */
 inline fun <reified T : Any> Constructor<*>.makeInstance(args: Array<Any>) =
         newInstance(*args) as T
+
+/**
+ * Make an instance with given arguments
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T : Any> Constructor<*>.makeInstance(kClass: KClass<T>, args: Array<Any>) =
+    newInstance(*args) as T
 
 /**
  * Retrieve arguments for given constructor
