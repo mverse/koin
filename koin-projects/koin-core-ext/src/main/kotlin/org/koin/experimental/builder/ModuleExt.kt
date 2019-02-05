@@ -62,7 +62,7 @@ inline fun <reified T : Any> Module.factory(
  * @param override - allow definition override
  */
 fun <T : Any> Module.factory(
-    iface: KClass<out T>,
+    iface: KClass<T>,
     name: String? = null,
     override: Boolean = false
 ): BeanDefinition<T> = factory(iface, name, override) { create(iface, this) }
