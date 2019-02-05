@@ -21,6 +21,7 @@ import org.koin.core.definition.DefinitionFactory
 import org.koin.core.definition.Options
 import org.koin.core.scope.ScopeDefinition
 import org.koin.ext.getFullName
+import java.util.function.Predicate
 import kotlin.reflect.KClass
 
 /**
@@ -41,14 +42,14 @@ class Module(
      */
     fun <T> declareDefinition(definition: BeanDefinition<T>, options: Options) {
         definition.updateOptions(options)
-        definitions.add(definition)
+        definitions += definition
     }
 
     /**
      * Declare a definition in current Module
      */
     fun declareScope(scope: ScopeDefinition) {
-        scopes.add(scope)
+        scopes += scope
     }
 
     /**
@@ -174,6 +175,22 @@ class Module(
         val beanDefinition = DefinitionFactory.createFactory(type, name, definition)
         declareDefinition(beanDefinition, Options(override = override))
         return beanDefinition
+    }
+
+    operator fun minusAssign(filter: (BeanDefinition<*>)->Boolean) {
+        definitions.removeIf(filter)
+    }
+
+    operator fun minusAssign(type: KClass<*>) {
+        definitions.removeIf {
+            it.primaryType == type
+        }
+    }
+
+    operator fun minusAssign(name: String) {
+        definitions.removeIf {
+            it.name == name
+        }
     }
 
     /**
