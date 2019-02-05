@@ -20,6 +20,14 @@ object DefinitionFactory {
     return createDefinition(type, name, definition)
   }
 
+  fun createSingleAny(
+      type: KClass<*>,
+      name: String? = null,
+      definition: Definition<Any>
+  ): BeanDefinition<Any> {
+    return createDefinitionAny(type, name, definition)
+  }
+
   inline fun <reified T : Any> createScope(
       name: String? = null,
       scopeName: String? = null,
@@ -58,6 +66,19 @@ object DefinitionFactory {
       kind: Kind = Kind.Single
   ): BeanDefinition<T> {
     val beanDefinition = BeanDefinition<T>(name, type)
+    beanDefinition.definition = definition
+    beanDefinition.kind = kind
+    beanDefinition.createInstanceHolder()
+    return beanDefinition
+  }
+
+  fun createDefinitionAny(
+      type: KClass<*>,
+      name: String?,
+      definition: Definition<Any>,
+      kind: Kind = Kind.Single
+  ): BeanDefinition<Any> {
+    val beanDefinition = BeanDefinition<Any>(name, type)
     beanDefinition.definition = definition
     beanDefinition.kind = kind
     beanDefinition.createInstanceHolder()

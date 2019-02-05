@@ -84,6 +84,25 @@ class Module(
         return beanDefinition
     }
 
+    /**
+     * Declare a Single definition
+     * @param name
+     * @param createdAtStart
+     * @param override
+     * @param definition - definition function
+     */
+    fun singleAny(
+        type: KClass<*>,
+        name: String? = null,
+        createdAtStart: Boolean = false,
+        override: Boolean = false,
+        definition: Definition<Any>
+    ): BeanDefinition<Any> {
+        val beanDefinition = DefinitionFactory.createSingleAny(type, name, definition)
+        declareDefinition(beanDefinition, Options(createdAtStart, override))
+        return beanDefinition
+    }
+
     private fun BeanDefinition<*>.updateOptions(options: Options) {
         this.options.isCreatedAtStart = options.isCreatedAtStart || isCreatedAtStart
         this.options.override = options.override || override

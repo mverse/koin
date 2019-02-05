@@ -96,6 +96,20 @@ fun <R : Any, T : R> Module.singleBy(
 ): BeanDefinition<R> = single(asType, name, createOnStart, override) { create(implType, this) }
 
 /**
+ * Create a Single definition for given type T to modules and cast as R
+ * @param name
+ * @param createOnStart - need to be created at start
+ * @param override - allow definition override
+ */
+fun Module.singleByAny(
+    implType: KClass<*>,
+    asType: KClass<*>,
+    name: String? = null,
+    createOnStart: Boolean = false,
+    override: Boolean = false
+): BeanDefinition<Any> = singleAny(asType, name, createOnStart, override) { create(implType, this) }
+
+/**
  * Create a Factory definition for given type T to modules and cast as R
  *
  * @param name
