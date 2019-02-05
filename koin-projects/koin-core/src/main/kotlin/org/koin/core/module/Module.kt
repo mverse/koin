@@ -21,7 +21,6 @@ import org.koin.core.definition.DefinitionFactory
 import org.koin.core.definition.Options
 import org.koin.core.scope.ScopeDefinition
 import org.koin.ext.getFullName
-import java.util.function.Predicate
 import kotlin.reflect.KClass
 
 /**
@@ -31,172 +30,196 @@ import kotlin.reflect.KClass
  * @author Arnaud Giuliani
  */
 class Module(
-        internal val isCreatedAtStart: Boolean,
-        internal val override: Boolean
+    internal val isCreatedAtStart: Boolean,
+    internal val override: Boolean
 ) {
-    internal val definitions = arrayListOf<BeanDefinition<*>>()
-    internal val scopes = arrayListOf<ScopeDefinition>()
+  internal val definitions = arrayListOf<BeanDefinition<*>>()
+  internal val scopes = arrayListOf<ScopeDefinition>()
 
-    /**
-     * Declare a definition in current Module
-     */
-    fun <T> declareDefinition(definition: BeanDefinition<T>, options: Options) {
-        definition.updateOptions(options)
-        definitions += definition
+  /**
+   * Declare a definition in current Module
+   */
+  fun <T> declareDefinition(definition: BeanDefinition<T>, options: Options) {
+    definition.updateOptions(options)
+    definitions += definition
+  }
+
+  /**
+   * Declare a definition in current Module
+   */
+  fun declareScope(scope: ScopeDefinition) {
+    scopes += scope
+  }
+
+  fun <T : Any> getOrNull(type: KClass<T>): BeanDefinition<T>? {
+    @Suppress("UNCHECKED_CAST")
+    return definitions.firstOrNull { it.primaryType == type } as? BeanDefinition<T>
+  }
+
+  fun getOrNull(name: String): BeanDefinition<*>? {
+    @Suppress("UNCHECKED_CAST")
+    return definitions.firstOrNull { it.name == name }
+  }
+
+  operator fun contains(type: KClass<*>): Boolean {
+    return definitions.any { it.primaryType == type }
+  }
+
+  operator fun contains(name: String): Boolean {
+    return definitions.any { it.name == name }
+  }
+
+  operator fun <T : Any> get(type: KClass<T>): BeanDefinition<T> = getOrNull(type)
+      ?: throw NullPointerException("No bean definition for type $type")
+
+  operator fun get(name: String): BeanDefinition<*> = getOrNull(name)
+      ?: throw NullPointerException("No bean definition named $name")
+
+  /**
+   * Declare a Single definition
+   * @param name
+   * @param createdAtStart
+   * @param override
+   * @param definition - definition function
+   */
+  inline fun <reified T : Any> single(
+      name: String? = null,
+      createdAtStart: Boolean = false,
+      override: Boolean = false,
+      noinline definition: Definition<T>
+  ): BeanDefinition<T> = single(T::class, name, createdAtStart, override, definition)
+
+  /**
+   * Declare a Single definition
+   * @param name
+   * @param createdAtStart
+   * @param override
+   * @param definition - definition function
+   */
+  fun <T : Any> single(
+      iface: KClass<out T>,
+      name: String? = null,
+      createdAtStart: Boolean = false,
+      override: Boolean = false,
+      definition: Definition<T>
+  ): BeanDefinition<T> {
+    val beanDefinition = DefinitionFactory.createSingle(iface, name, definition)
+    declareDefinition(beanDefinition, Options(createdAtStart, override))
+    return beanDefinition
+  }
+
+  /**
+   * Declare a Single definition
+   * @param name
+   * @param createdAtStart
+   * @param override
+   * @param definition - definition function
+   */
+  fun singleAny(
+      type: KClass<*>,
+      name: String? = null,
+      createdAtStart: Boolean = false,
+      override: Boolean = false,
+      definition: Definition<Any>
+  ): BeanDefinition<Any> {
+    val beanDefinition = DefinitionFactory.createSingleAny(type, name, definition)
+    declareDefinition(beanDefinition, Options(createdAtStart, override))
+    return beanDefinition
+  }
+
+  private fun BeanDefinition<*>.updateOptions(options: Options) {
+    this.options.isCreatedAtStart = options.isCreatedAtStart || isCreatedAtStart
+    this.options.override = options.override || override
+  }
+
+  /**
+   * Declare a group a scoped definition with a given scope name
+   * @param scopeName
+   */
+  fun scope(scopeName: String, scopeDefinition: ScopeDefinition.() -> Unit) {
+    val scope: ScopeDefinition = ScopeDefinition(scopeName, this).apply(scopeDefinition)
+    declareScope(scope)
+  }
+
+  /**
+   * Declare a group a scoped definition with a given type name
+   */
+  inline fun <reified T> scope(scopeDefinition: ScopeDefinition.() -> Unit) {
+    val scopeName = T::class.getFullName()
+    val scope: ScopeDefinition = ScopeDefinition(scopeName, this).apply(scopeDefinition)
+    declareScope(scope)
+  }
+
+  /**
+   * Declare a ScopeInstance definition
+   * @param scopeName
+   * @param name
+   * @param override
+   * @param definition - definition function
+   */
+  inline fun <reified T : Any> scoped(
+      name: String? = null,
+      override: Boolean = false,
+      noinline definition: Definition<T>
+  ): BeanDefinition<T> {
+    val beanDefinition = DefinitionFactory.createScope(name, definition = definition)
+    declareDefinition(beanDefinition, Options(override = override))
+    return beanDefinition
+  }
+
+  /**
+   * Declare a Factory definition
+   * @param name
+   * @param override
+   * @param definition - definition function
+   */
+  inline fun <reified T : Any> factory(
+      name: String? = null,
+      override: Boolean = false,
+      noinline definition: Definition<T>
+  ): BeanDefinition<T> {
+    val beanDefinition = DefinitionFactory.createFactory(name, definition)
+    declareDefinition(beanDefinition, Options(override = override))
+    return beanDefinition
+  }
+
+  /**
+   * Declare a Factory definition
+   * @param name
+   * @param override
+   * @param definition - definition function
+   */
+  fun <T : Any> factory(
+      type: KClass<out T>,
+      name: String? = null,
+      override: Boolean = false,
+      definition: Definition<T>
+  ): BeanDefinition<T> {
+    val beanDefinition = DefinitionFactory.createFactory(type, name, definition)
+    declareDefinition(beanDefinition, Options(override = override))
+    return beanDefinition
+  }
+
+  operator fun minusAssign(filter: (BeanDefinition<*>) -> Boolean) {
+    definitions.removeIf(filter)
+  }
+
+  operator fun minusAssign(type: KClass<*>) {
+    definitions.removeIf {
+      it.primaryType == type
     }
+  }
 
-    /**
-     * Declare a definition in current Module
-     */
-    fun declareScope(scope: ScopeDefinition) {
-        scopes += scope
+  operator fun minusAssign(name: String) {
+    definitions.removeIf {
+      it.name == name
     }
+  }
 
-    /**
-     * Declare a Single definition
-     * @param name
-     * @param createdAtStart
-     * @param override
-     * @param definition - definition function
-     */
-    inline fun <reified T:Any> single(
-            name: String? = null,
-            createdAtStart: Boolean = false,
-            override: Boolean = false,
-            noinline definition: Definition<T>
-    ): BeanDefinition<T> = single(T::class, name, createdAtStart, override, definition)
-
-    /**
-     * Declare a Single definition
-     * @param name
-     * @param createdAtStart
-     * @param override
-     * @param definition - definition function
-     */
-    fun <T:Any> single(
-        iface: KClass<out T>,
-        name: String? = null,
-        createdAtStart: Boolean = false,
-        override: Boolean = false,
-        definition: Definition<T>
-    ): BeanDefinition<T> {
-        val beanDefinition = DefinitionFactory.createSingle(iface, name, definition)
-        declareDefinition(beanDefinition, Options(createdAtStart, override))
-        return beanDefinition
-    }
-
-    /**
-     * Declare a Single definition
-     * @param name
-     * @param createdAtStart
-     * @param override
-     * @param definition - definition function
-     */
-    fun singleAny(
-        type: KClass<*>,
-        name: String? = null,
-        createdAtStart: Boolean = false,
-        override: Boolean = false,
-        definition: Definition<Any>
-    ): BeanDefinition<Any> {
-        val beanDefinition = DefinitionFactory.createSingleAny(type, name, definition)
-        declareDefinition(beanDefinition, Options(createdAtStart, override))
-        return beanDefinition
-    }
-
-    private fun BeanDefinition<*>.updateOptions(options: Options) {
-        this.options.isCreatedAtStart = options.isCreatedAtStart || isCreatedAtStart
-        this.options.override = options.override || override
-    }
-
-    /**
-     * Declare a group a scoped definition with a given scope name
-     * @param scopeName
-     */
-    fun scope(scopeName: String, scopeDefinition: ScopeDefinition.() -> Unit) {
-        val scope: ScopeDefinition = ScopeDefinition(scopeName, this).apply(scopeDefinition)
-        declareScope(scope)
-    }
-
-    /**
-     * Declare a group a scoped definition with a given type name
-     */
-    inline fun <reified T> scope(scopeDefinition: ScopeDefinition.() -> Unit) {
-        val scopeName = T::class.getFullName()
-        val scope: ScopeDefinition = ScopeDefinition(scopeName, this).apply(scopeDefinition)
-        declareScope(scope)
-    }
-
-    /**
-     * Declare a ScopeInstance definition
-     * @param scopeName
-     * @param name
-     * @param override
-     * @param definition - definition function
-     */
-    inline fun <reified T:Any> scoped(
-            name: String? = null,
-            override: Boolean = false,
-            noinline definition: Definition<T>
-    ): BeanDefinition<T> {
-        val beanDefinition = DefinitionFactory.createScope(name, definition = definition)
-        declareDefinition(beanDefinition, Options(override = override))
-        return beanDefinition
-    }
-
-    /**
-     * Declare a Factory definition
-     * @param name
-     * @param override
-     * @param definition - definition function
-     */
-    inline fun <reified T:Any> factory(
-            name: String? = null,
-            override: Boolean = false,
-            noinline definition: Definition<T>
-    ): BeanDefinition<T> {
-        val beanDefinition = DefinitionFactory.createFactory(name, definition)
-        declareDefinition(beanDefinition, Options(override = override))
-        return beanDefinition
-    }
-
-    /**
-     * Declare a Factory definition
-     * @param name
-     * @param override
-     * @param definition - definition function
-     */
-    fun <T:Any> factory(
-        type: KClass<out T>,
-        name: String? = null,
-        override: Boolean = false,
-        definition: Definition<T>
-    ): BeanDefinition<T> {
-        val beanDefinition = DefinitionFactory.createFactory(type, name, definition)
-        declareDefinition(beanDefinition, Options(override = override))
-        return beanDefinition
-    }
-
-    operator fun minusAssign(filter: (BeanDefinition<*>)->Boolean) {
-        definitions.removeIf(filter)
-    }
-
-    operator fun minusAssign(type: KClass<*>) {
-        definitions.removeIf {
-            it.primaryType == type
-        }
-    }
-
-    operator fun minusAssign(name: String) {
-        definitions.removeIf {
-            it.name == name
-        }
-    }
-
-    /**
-     * Help write list of Modules
-     */
-    operator fun plus(module: Module) = listOf(this, module)
+  /**
+   * Help write list of Modules
+   */
+  operator fun plus(module: Module) = listOf(this, module)
 }
 
 /**

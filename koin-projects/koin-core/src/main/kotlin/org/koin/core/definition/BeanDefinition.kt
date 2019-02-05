@@ -15,7 +15,11 @@
  */
 package org.koin.core.definition
 
-import org.koin.core.instance.*
+import org.koin.core.instance.FactoryInstance
+import org.koin.core.instance.Instance
+import org.koin.core.instance.InstanceContext
+import org.koin.core.instance.ScopedInstance
+import org.koin.core.instance.SingleInstance
 import org.koin.core.parameter.DefinitionParameters
 import org.koin.ext.getFullName
 import kotlin.reflect.KClass
@@ -30,56 +34,62 @@ import kotlin.reflect.KClass
  * @author Arnaud Giuliani
  */
 data class BeanDefinition<T>(
-        val name: String? = null,
-        val primaryType: KClass<*>
+    val name: String? = null,
+    val primaryType: KClass<*>
 ) {
-    var secondaryTypes = arrayListOf<KClass<*>>()
-    lateinit var instance: Instance<T>
-    lateinit var definition: Definition<T>
-    var options = Options()
-    var attributes = Attributes()
-    lateinit var kind: Kind
+  var secondaryTypes = arrayListOf<KClass<*>>()
+  lateinit var instance: Instance<T>
+  lateinit var definition: Definition<T>
+  var options = Options()
+  var attributes = Attributes()
+  lateinit var kind: Kind
 
-    /**
-     * Tells if the definition is this Kind
-     */
-    fun isKind(kind: Kind): Boolean = this.kind == kind
+  operator fun plusAssign(secondaryType: KClass<*>) {
+    secondaryTypes.add(secondaryType)
+  }
 
-    /**
-     * Is a Scope definition
-     */
-    fun isScoped() = isKind(Kind.Scope)
+  /**
+   * Tells if the definition is this Kind
+   */
+  fun isKind(kind: Kind): Boolean = this.kind == kind
 
-    /**
-     * Create the associated Instance Holder
-     */
-    fun createInstanceHolder() {
-        this.instance = when (kind) {
-            Kind.Single -> SingleInstance(this)
-            Kind.Scope -> ScopedInstance(this)
-            Kind.Factory -> FactoryInstance(this)
-        }
+  /**
+   * Is a Scope definition
+   */
+  fun isScoped() = isKind(Kind.Scope)
+
+  /**
+   * Create the associated Instance Holder
+   */
+  fun createInstanceHolder() {
+    this.instance = when (kind) {
+      Kind.Single -> SingleInstance(this)
+      Kind.Scope -> ScopedInstance(this)
+      Kind.Factory -> FactoryInstance(this)
     }
+  }
 
-    /**
-     * Resolve instance
-     */
-    fun <T> resolveInstance(context: InstanceContext) = instance.get<T>(context)
+  /**
+   * Resolve instance
+   */
+  fun <T> resolveInstance(context: InstanceContext) = instance.get<T>(context)
 
-    override fun toString(): String {
-        val defKind = kind.toString()
-        val defName = name?.let { "scopeName:'$name', " } ?: ""
-        val defType = "class:'${primaryType.getFullName()}'"
-        val defOtherTypes = if (secondaryTypes.isNotEmpty()) {
-            val typesAsString = secondaryTypes.joinToString(",") { it.getFullName() }
-            ", classes:$typesAsString"
-        } else ""
-        return "[type:$defKind,$defName$defType$defOtherTypes]"
-    }
+  override fun toString(): String {
+    val defKind = kind.toString()
+    val defName = name?.let { "scopeName:'$name', " } ?: ""
+    val defType = "class:'${primaryType.getFullName()}'"
+    val defOtherTypes = if (secondaryTypes.isNotEmpty()) {
+      val typesAsString = secondaryTypes.joinToString(",") { it.getFullName() }
+      ", classes:$typesAsString"
+    } else ""
+    return "[type:$defKind,$defName$defType$defOtherTypes]"
+  }
 }
 
 enum class Kind {
-    Single, Factory, Scope
+  Single,
+  Factory,
+  Scope
 }
 
 typealias Definition<T> = DefinitionContext.(DefinitionParameters) -> T
