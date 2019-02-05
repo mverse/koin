@@ -81,10 +81,9 @@ class Koin {
      */
     fun <T> get(
             clazz: KClass<*>,
-            name: String?,
-            scope: ScopeInstance?,
-            parameters: ParametersDefinition?
-    ): T = synchronized(this) {
+            name: String? = null,
+            scope: ScopeInstance? = null,
+            parameters: ParametersDefinition? = null): T = synchronized(this) {
         return if (logger.level == Level.DEBUG) {
             logger.debug("+- get '${clazz.getFullName()}'")
             val (instance: T, duration: Double) = measureDuration {
