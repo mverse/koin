@@ -166,7 +166,7 @@ class Module(
      * @param definition - definition function
      */
     fun <T:Any> factory(
-        type: KClass<T>,
+        type: KClass<out T>,
         name: String? = null,
         override: Boolean = false,
         definition: Definition<T>

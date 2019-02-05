@@ -62,7 +62,7 @@ inline fun <reified T : Any> Module.factory(
  * @param override - allow definition override
  */
 fun <T : Any> Module.factory(
-    kClass: KClass<T>,
+    kClass: KClass<out T>,
     name: String? = null,
     override: Boolean = false
 ): BeanDefinition<T> = factory(kClass, name, override) { create(kClass, this) }
@@ -88,7 +88,7 @@ inline fun <reified R : Any, reified T : R> Module.singleBy(
  * @param override - allow definition override
  */
 fun <R : Any, T : R> Module.singleBy(
-    implType: KClass<T>,
+    implType: KClass<out T>,
     asType: KClass<R>,
     name: String? = null,
     createOnStart: Boolean = false,
@@ -127,7 +127,7 @@ inline fun <reified R : Any, reified T : R> Module.factoryBy(
  * @param override - allow definition override
  */
 fun <R : Any, T : R> Module.factoryBy(
-    implType: KClass<T>,
+    implType: KClass<out T>,
     asType: KClass<R>,
     name: String? = null,
     override: Boolean = false
