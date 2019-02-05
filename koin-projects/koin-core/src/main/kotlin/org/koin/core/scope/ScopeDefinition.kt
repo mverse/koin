@@ -34,7 +34,7 @@ data class ScopeDefinition(val scopeName: String, val module: Module) {
      * @param override
      * @param definition - definition function
      */
-    inline fun <reified T> scoped(
+    inline fun <reified T:Any> scoped(
             name: String? = null,
             override: Boolean = false,
             noinline definition: Definition<T>

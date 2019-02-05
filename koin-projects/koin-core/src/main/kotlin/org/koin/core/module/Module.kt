@@ -21,6 +21,7 @@ import org.koin.core.definition.DefinitionFactory
 import org.koin.core.definition.Options
 import org.koin.core.scope.ScopeDefinition
 import org.koin.ext.getFullName
+import kotlin.reflect.KClass
 
 /**
  * Koin Module
@@ -57,13 +58,28 @@ class Module(
      * @param override
      * @param definition - definition function
      */
-    inline fun <reified T> single(
+    inline fun <reified T:Any> single(
             name: String? = null,
             createdAtStart: Boolean = false,
             override: Boolean = false,
             noinline definition: Definition<T>
+    ): BeanDefinition<T> = single(T::class, name, createdAtStart, override, definition)
+
+    /**
+     * Declare a Single definition
+     * @param name
+     * @param createdAtStart
+     * @param override
+     * @param definition - definition function
+     */
+    fun <T:Any> single(
+        type: KClass<T>,
+        name: String? = null,
+        createdAtStart: Boolean = false,
+        override: Boolean = false,
+        definition: Definition<T>
     ): BeanDefinition<T> {
-        val beanDefinition = DefinitionFactory.createSingle(name, definition)
+        val beanDefinition = DefinitionFactory.createSingle(type, name, definition)
         declareDefinition(beanDefinition, Options(createdAtStart, override))
         return beanDefinition
     }
@@ -98,7 +114,7 @@ class Module(
      * @param override
      * @param definition - definition function
      */
-    inline fun <reified T> scoped(
+    inline fun <reified T:Any> scoped(
             name: String? = null,
             override: Boolean = false,
             noinline definition: Definition<T>
@@ -114,12 +130,29 @@ class Module(
      * @param override
      * @param definition - definition function
      */
-    inline fun <reified T> factory(
+    inline fun <reified T:Any> factory(
             name: String? = null,
             override: Boolean = false,
             noinline definition: Definition<T>
     ): BeanDefinition<T> {
         val beanDefinition = DefinitionFactory.createFactory(name, definition)
+        declareDefinition(beanDefinition, Options(override = override))
+        return beanDefinition
+    }
+
+    /**
+     * Declare a Factory definition
+     * @param name
+     * @param override
+     * @param definition - definition function
+     */
+    fun <T:Any> factory(
+        type: KClass<T>,
+        name: String? = null,
+        override: Boolean = false,
+        definition: Definition<T>
+    ): BeanDefinition<T> {
+        val beanDefinition = DefinitionFactory.createFactory(type, name, definition)
         declareDefinition(beanDefinition, Options(override = override))
         return beanDefinition
     }
