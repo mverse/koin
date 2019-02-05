@@ -88,12 +88,12 @@ inline fun <reified R : Any, reified T : R> Module.singleBy(
  * @param override - allow definition override
  */
 fun <R : Any, T : R> Module.singleBy(
-    kClassT: KClass<T>,
-    kClassR: KClass<R>,
+    implType: KClass<T>,
+    asType: KClass<R>,
     name: String? = null,
     createOnStart: Boolean = false,
     override: Boolean = false
-): BeanDefinition<R> = single(kClassR, name, createOnStart, override) { create(kClassT, this) }
+): BeanDefinition<R> = single(asType, name, createOnStart, override) { create(implType, this) }
 
 /**
  * Create a Factory definition for given type T to modules and cast as R
@@ -113,8 +113,8 @@ inline fun <reified R : Any, reified T : R> Module.factoryBy(
  * @param override - allow definition override
  */
 fun <R : Any, T : R> Module.factoryBy(
-    kClassT: KClass<T>,
-    kClassR: KClass<R>,
+    implType: KClass<T>,
+    asType: KClass<R>,
     name: String? = null,
     override: Boolean = false
-): BeanDefinition<R> = factory(kClassR, name, override) { create(kClassT, this) }
+): BeanDefinition<R> = factory(asType, name, override) { create(implType, this) }
