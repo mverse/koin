@@ -89,7 +89,7 @@ inline fun <reified R : Any, reified T : R> Module.singleBy(
  */
 fun <R : Any, T : R> Module.singleBy(
     iface: KClass<R>,
-    impl: KClass<out T>,
+    impl: KClass<T>,
     name: String? = null,
     createOnStart: Boolean = false,
     override: Boolean = false
@@ -128,7 +128,7 @@ inline fun <reified R : Any, reified T : R> Module.factoryBy(
  */
 fun <R : Any, T : R> Module.factoryBy(
     iface: KClass<R>,
-    impl: KClass<out T>,
+    impl: KClass<T>,
     name: String? = null,
     override: Boolean = false
 ): BeanDefinition<R> = factory(iface, name, override) { create(impl, this) }

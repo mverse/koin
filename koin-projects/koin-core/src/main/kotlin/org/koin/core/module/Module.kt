@@ -73,13 +73,13 @@ class Module(
      * @param definition - definition function
      */
     fun <T:Any> single(
-        type: KClass<out T>,
+        iface: KClass<out T>,
         name: String? = null,
         createdAtStart: Boolean = false,
         override: Boolean = false,
         definition: Definition<T>
     ): BeanDefinition<T> {
-        val beanDefinition = DefinitionFactory.createSingle(type, name, definition)
+        val beanDefinition = DefinitionFactory.createSingle(iface, name, definition)
         declareDefinition(beanDefinition, Options(createdAtStart, override))
         return beanDefinition
     }

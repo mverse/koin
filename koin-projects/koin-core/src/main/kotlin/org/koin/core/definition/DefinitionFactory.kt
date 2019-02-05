@@ -25,7 +25,7 @@ object DefinitionFactory {
       name: String? = null,
       definition: Definition<Any>
   ): BeanDefinition<Any> {
-    return createDefinitionAny(type, name, definition)
+    return createDefinition(type, name, definition)
   }
 
   inline fun <reified T : Any> createScope(
@@ -71,7 +71,6 @@ object DefinitionFactory {
     beanDefinition.createInstanceHolder()
     return beanDefinition
   }
-
   fun createDefinitionAny(
       type: KClass<*>,
       name: String?,
